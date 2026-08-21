@@ -8,6 +8,10 @@ on:
 env:
   GODOT_VERSION: "4.2.2"
   EXPORT_NAME: "last-beacon"
+  JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+  GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /root/.android/debug.keystore
+  GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+  GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
 
 jobs:
   build-android:
@@ -32,17 +36,12 @@ jobs:
             -dname "CN=Android Debug,O=Android,C=US" \
             -validity 9999 -storetype JKS
 
-      - name: Import project
+      - name: Import project (with JAVA_HOME already set)
         run: |
           mkdir -v -p build/android
           godot --headless --verbose --import
 
       - name: Export APK
-        env:
-          JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
-          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /root/.android/debug.keystore
-          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
-          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
         run: |
           godot --headless --verbose --export-debug "Android" build/android/${EXPORT_NAME}.apk
           echo "--- checking output file ---"
