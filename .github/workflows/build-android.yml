@@ -19,6 +19,17 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Debug environment
+        run: |
+          echo "--- find debug.keystore ---"
+          find / -iname "*.keystore" 2>/dev/null
+          echo "--- ANDROID env vars ---"
+          env | grep -i android || true
+          echo "--- JAVA env vars ---"
+          env | grep -i java || true
+          echo "--- godot version ---"
+          godot --version
+
       - name: Setup Godot Android export templates
         run: |
           mkdir -v -p ~/.local/share/godot/export_templates
@@ -32,18 +43,16 @@ jobs:
             -dname "CN=Android Debug,O=Android,C=US" \
             -validity 9999 -storetype JKS
 
-      - name: Import project (generate .godot cache)
+      - name: Import project
         run: |
           mkdir -v -p build/android
           godot --headless --verbose --import
 
+      - name: Debug Godot config location
+        run: |
+          find / -iname "editor_settings*" 2>/dev/null
+          find / -iname "*.tres" -path "*godot*" 2>/dev/null
+
       - name: Export APK
         run: |
           godot --headless --verbose --export-debug "Android" build/android/${EXPORT_NAME}.apk
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.EXPORT_NAME }}-apk
-          path: build/android/${{ env.EXPORT_NAME }}.apk
-          retention-days: 14
