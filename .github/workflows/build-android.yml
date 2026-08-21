@@ -37,24 +37,16 @@ jobs:
           mkdir -v -p build/android
           godot --headless --verbose --import
 
-      - name: Patch export_presets with real paths
-        run: |
-          set +e
-          sed -i 's#keystore/debug=.*#keystore/debug="/root/.android/debug.keystore"#' export_presets.cfg
-          sed -i 's#keystore/debug_user=.*#keystore/debug_user="androiddebugkey"#' export_presets.cfg
-          sed -i 's#keystore/debug_password=.*#keystore/debug_password="android"#' export_presets.cfg
-          echo "--- final export_presets.cfg ---"
-          cat export_presets.cfg
-
       - name: Export APK
         env:
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /root/.android/debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
         run: |
-          set +e
-          godot --headless --verbose --export-debug "Android" build/android/${EXPORT_NAME}.apk 2>&1 | tee /root/export_log.txt
-          echo "--- exit status: $? ---"
+          godot --headless --verbose --export-debug "Android" build/android/${EXPORT_NAME}.apk
           echo "--- checking output file ---"
-          ls -la build/android/ || true
+          ls -la build/android/
 
       - name: Upload APK artifact
         if: always()
