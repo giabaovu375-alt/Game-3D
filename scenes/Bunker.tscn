@@ -1,26 +1,63 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1"]
-[ext_resource type="Script" path="res://scripts/bunker_door.gd" id="2"]
-[ext_resource type="Script" path="res://scripts/flicker_light.gd" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/TouchControls.tscn" id="2"]
+[ext_resource type="Script" path="res://scripts/bunker_door.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/flicker_light.gd" id="4"]
 
 [sub_resource type="StandardMaterial3D" id="wall_mat"]
-albedo_color = Color(0.25, 0.24, 0.22, 1)
-roughness = 0.9
+albedo_color = Color(0.32, 0.31, 0.29, 1)
+metallic = 0.15
+metallic_specular = 0.4
+roughness = 0.65
+
+[sub_resource type="StandardMaterial3D" id="wall_panel_mat"]
+albedo_color = Color(0.22, 0.21, 0.2, 1)
+metallic = 0.35
+roughness = 0.45
+rim_enabled = true
+rim = 0.15
+rim_tint = 0.5
 
 [sub_resource type="StandardMaterial3D" id="floor_mat"]
-albedo_color = Color(0.15, 0.15, 0.15, 1)
-roughness = 1.0
+albedo_color = Color(0.13, 0.13, 0.14, 1)
+metallic = 0.25
+metallic_specular = 0.6
+roughness = 0.35
+
+[sub_resource type="StandardMaterial3D" id="trim_mat"]
+albedo_color = Color(0.85, 0.5, 0.15, 1)
+metallic = 0.6
+roughness = 0.3
+emission_enabled = true
+emission = Color(0.9, 0.45, 0.1, 1)
+emission_energy_multiplier = 0.6
+
+[sub_resource type="StandardMaterial3D" id="pipe_mat"]
+albedo_color = Color(0.4, 0.38, 0.35, 1)
+metallic = 0.8
+roughness = 0.25
+
+[sub_resource type="StandardMaterial3D" id="door_mat"]
+albedo_color = Color(0.28, 0.29, 0.3, 1)
+metallic = 0.7
+roughness = 0.3
 
 [sub_resource type="BoxShape3D" id="door_area_shape"]
 size = Vector3(2, 3, 2)
 
 [sub_resource type="Environment" id="env_1"]
 background_mode = 1
-background_color = Color(0.02, 0.02, 0.03, 1)
+background_color = Color(0.03, 0.03, 0.04, 1)
 ambient_light_source = 2
-ambient_light_color = Color(0.1, 0.1, 0.12, 1)
-ambient_light_energy = 0.5
+ambient_light_color = Color(0.22, 0.2, 0.19, 1)
+ambient_light_energy = 1.1
+tonemap_mode = 2
+ssao_enabled = true
+ssao_intensity = 1.2
+glow_enabled = true
+glow_intensity = 0.6
+glow_bloom = 0.15
 
 [node name="Bunker" type="Node3D"]
 
@@ -66,16 +103,114 @@ use_collision = true
 [node name="InnerWall" type="CSGBox3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -1)
 size = Vector3(8, 4, 0.5)
-material = SubResource("wall_mat")
+material = SubResource("wall_panel_mat")
 use_collision = true
+
+[node name="InnerWallTrimTop" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.85, -1)
+size = Vector3(8.05, 0.08, 0.55)
+material = SubResource("trim_mat")
+
+[node name="InnerWallTrimBottom" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, -1)
+size = Vector3(8.05, 0.08, 0.55)
+material = SubResource("trim_mat")
+
+[node name="FloorTrimRoom1A" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.7, 0.02, -6)
+size = Vector3(0.15, 0.04, 6)
+material = SubResource("trim_mat")
+
+[node name="FloorTrimRoom1B" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7, 0.02, -6)
+size = Vector3(0.15, 0.04, 6)
+material = SubResource("trim_mat")
+
+[node name="FloorTrimRoom2A" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.7, 0.02, 3.5)
+size = Vector3(0.15, 0.04, 8)
+material = SubResource("trim_mat")
+
+[node name="FloorTrimRoom2B" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7, 0.02, 3.5)
+size = Vector3(0.15, 0.04, 8)
+material = SubResource("trim_mat")
+
+[node name="PillarRoom1L" type="CSGCylinder3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2, -8.5)
+radius = 0.35
+height = 4.0
+sides = 8
+material = SubResource("wall_panel_mat")
+use_collision = true
+
+[node name="PillarRoom1R" type="CSGCylinder3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 2, -8.5)
+radius = 0.35
+height = 4.0
+sides = 8
+material = SubResource("wall_panel_mat")
+use_collision = true
+
+[node name="PillarRoom2L" type="CSGCylinder3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2, 6.5)
+radius = 0.35
+height = 4.0
+sides = 8
+material = SubResource("wall_panel_mat")
+use_collision = true
+
+[node name="PillarRoom2R" type="CSGCylinder3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 2, 6.5)
+radius = 0.35
+height = 4.0
+sides = 8
+material = SubResource("wall_panel_mat")
+use_collision = true
+
+[node name="PipeCeilingRoom1" type="CSGCylinder3D" parent="."]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 3.9, -6)
+radius = 0.12
+height = 11.5
+sides = 10
+material = SubResource("pipe_mat")
+
+[node name="PipeCeilingRoom2" type="CSGCylinder3D" parent="."]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -2.5, 3.9, 4)
+radius = 0.12
+height = 6.0
+sides = 10
+material = SubResource("pipe_mat")
 
 [node name="BunkerDoor" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
-script = ExtResource("2")
+script = ExtResource("3")
 
 [node name="DoorMesh" type="CSGBox3D" parent="BunkerDoor"]
 size = Vector3(2, 2.2, 0.3)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+material = SubResource("door_mat")
+
+[node name="DoorFrameTop" type="CSGBox3D" parent="BunkerDoor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.28, -0.05)
+size = Vector3(2.3, 0.12, 0.15)
+material = SubResource("trim_mat")
+
+[node name="DoorFrameLeft" type="CSGBox3D" parent="BunkerDoor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.12, 1.1, -0.05)
+size = Vector3(0.12, 2.35, 0.15)
+material = SubResource("trim_mat")
+
+[node name="DoorFrameRight" type="CSGBox3D" parent="BunkerDoor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.12, 1.1, -0.05)
+size = Vector3(0.12, 2.35, 0.15)
+material = SubResource("trim_mat")
+
+[node name="WarnLight" type="OmniLight3D" parent="BunkerDoor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.4, 0.3)
+light_color = Color(1, 0.45, 0.1, 1)
+light_energy = 0.0
+omni_range = 3.0
 
 [node name="Area3D" type="Area3D" parent="BunkerDoor"]
 
@@ -84,17 +219,35 @@ shape = SubResource("door_area_shape")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 
 [node name="LightRoom1" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.5, -6)
-light_energy = 1.0
-omni_range = 8.0
-script = ExtResource("3")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.7, -6)
+light_color = Color(1, 0.92, 0.78, 1)
+light_energy = 2.2
+omni_range = 11.0
+shadow_enabled = true
+script = ExtResource("4")
 
 [node name="LightRoom2" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.5, 4)
-light_energy = 1.0
-omni_range = 8.0
-script = ExtResource("3")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.7, 4)
+light_color = Color(1, 0.92, 0.78, 1)
+light_energy = 2.2
+omni_range = 11.0
+shadow_enabled = true
+script = ExtResource("4")
+
+[node name="FillLightRoom1" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.2, -3)
+light_color = Color(0.6, 0.75, 1, 1)
+light_energy = 0.5
+omni_range = 6.0
+
+[node name="FillLightRoom2" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 1.2, 6)
+light_color = Color(0.6, 0.75, 1, 1)
+light_energy = 0.5
+omni_range = 6.0
 
 [node name="Player" parent="." instance=ExtResource("1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 5)
 groups = ["player"]
+
+[node name="TouchControls" parent="." instance=ExtResource("2")]
