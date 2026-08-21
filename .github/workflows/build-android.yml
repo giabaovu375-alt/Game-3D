@@ -26,51 +26,35 @@ jobs:
 
       - name: Setup debug keystore
         run: |
-          mkdir -v -p ~/.android
+          mkdir -v -p /root/.android
           keytool -keyalg RSA -genkeypair -alias androiddebugkey \
-            -keystore ~/.android/debug.keystore -storepass android -keypass android \
+            -keystore /root/.android/debug.keystore -storepass android -keypass android \
             -dname "CN=Android Debug,O=Android,C=US" \
             -validity 9999 -storetype JKS
-          echo "Keystore real path:"
-          find ~ -iname "debug.keystore"
-
-      - name: Find Java home
-        run: |
-          echo "JAVA_HOME currently: ${JAVA_HOME:-not set}"
-          which java || true
-          readlink -f "$(which java)" || true
-          find / -maxdepth 4 -iname "javac" 2>/dev/null || true
 
       - name: Import project
         run: |
           mkdir -v -p build/android
           godot --headless --verbose --import
 
-      - name: Configure Editor Settings (Java SDK + debug keystore)
+      - name: Patch export_presets with real paths
         run: |
-          GODOT_CONFIG_DIR="$HOME/.config/godot"
-          mkdir -v -p "$GODOT_CONFIG_DIR"
-          REAL_JAVA_HOME=$(dirname "$(dirname "$(readlink -f "$(which java)")")")
-          echo "Detected JAVA_HOME: $REAL_JAVA_HOME"
-          echo "Detected keystore path: $HOME/.android/debug.keystore"
-          cat > "$GODOT_CONFIG_DIR/editor_settings-4.tres" << INNEREOF
-          [gd_resource type="EditorSettings" format=3]
-
-          [resource]
-          export/android/java_sdk_path = "$REAL_JAVA_HOME"
-          export/android/android_sdk_path = "$ANDROID_HOME"
-          export/android/debug_keystore = "$HOME/.android/debug.keystore"
-          export/android/debug_keystore_user = "androiddebugkey"
-          export/android/debug_keystore_pass = "android"
-          INNEREOF
-          echo "--- content written ---"
-          cat "$GODOT_CONFIG_DIR/editor_settings-4.tres"
-          echo "--- checking godot actually reads this dir ---"
-          find / -iname "editor_settings-4.tres" 2>/dev/null
+          set +e
+          sed -i 's#keystore/debug=.*#keystore/debug="/root/.android/debug.keystore"#' export_presets.cfg
+          sed -i 's#keystore/debug_user=.*#keystore/debug_user="androiddebugkey"#' export_presets.cfg
+          sed -i 's#keystore/debug_password=.*#keystore/debug_password="android"#' export_presets.cfg
+          echo "--- final export_presets.cfg ---"
+          cat export_presets.cfg
 
       - name: Export APK
+        env:
+          JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
         run: |
-          godot --headless --verbose --export-debug "Android" build/android/${EXPORT_NAME}.apk
+          set +e
+          godot --headless --verbose --export-debug "Android" build/android/${EXPORT_NAME}.apk 2>&1 | tee /root/export_log.txt
+          echo "--- exit status: $? ---"
+          echo "--- checking output file ---"
+          ls -la build/android/ || true
 
       - name: Upload APK artifact
         if: always()
@@ -79,4 +63,4 @@ jobs:
           name: ${{ env.EXPORT_NAME }}-apk
           path: build/android/${{ env.EXPORT_NAME }}.apk
           retention-days: 14
-          if-no-files-found: ignore
+          if-no-files-found: warn
